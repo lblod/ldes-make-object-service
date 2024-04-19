@@ -2,7 +2,7 @@ pipeline:
   build:
     image: plugins/docker
     settings:
-      repo: lblod/job-compression-service
+      repo: lblod/ldes-make-object-service
       dry_run: true
 when:
   event:
