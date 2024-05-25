@@ -59,3 +59,4 @@ The following environment variables can be configured on the service:
 - **TARGET_GRAPH**: URI of the graph to which the consolidated objects must be written (default: `http://mu.semte.ch/graphs/public`)
 - **DEEP_COPY_BLANK_NODES**: If enabled nested blank nodes up to 3 levels deep will be copied to the target graph as well (default: `false`)
 - **BLANK_NODE_NAMESPACE**: Base URI of blank nodes in the LDES feed (default: `http://mu.semte.ch/blank#`)
+- **LDES_VERSION_OF_PATH**:  the predicate to be used to find the link to the non version object (default: `http://purl.org/dc/terms/isVersionOf`)
