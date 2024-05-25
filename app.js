@@ -7,6 +7,9 @@ const LANDING_ZONE_GRAPH =
   process.env.LANDING_ZONE_GRAPH || "http://mu.semte.ch/graphs/ldes";
 const TARGET_GRAPH =
   process.env.TARGET_GRAPH || "http://mu.semte.ch/graphs/public";
+const DEEP_COPY_BLANK_NODES = process.env.DEEP_COPY_BLANK_NODES;
+const BLANK_NODE_NAMESPACE =
+  process.env.BLANK_NODE_NAMESPACE || 'http://mu.semte.ch/blank#';
 
 app.use(
   bodyParser.json({
@@ -42,22 +45,83 @@ app.post("/delta", async function (req, res, next) {
 
 async function makeObject(subject) {
   const query = `
-    delete {
-	    graph <${TARGET_GRAPH}> {
-	       ?x ?y ?z.
-	    }
+    DELETE {
+      GRAPH <${TARGET_GRAPH}> {
+         ?x ?y ?z .
+         ?z ?y1 ?z1 .
+         ?z1 ?y2 ?z2 .
+         ?z2 ?y3 ?z3 .
+      }
     }
-    insert {
-	    graph <${TARGET_GRAPH}> {
-	       ?x ?p ?o
-	    }
+    INSERT {
+      GRAPH <${TARGET_GRAPH}> {
+         ?x ?p ?o .
+         ?o ?p1 ?o1 .
+         ?o1 ?p2 ?o2 .
+         ?o2 ?p3 ?o3 .
+      }
     }
-    where {
-	    graph <${LANDING_ZONE_GRAPH}> {
-	      <${subject}> <http://purl.org/dc/terms/isVersionOf> ?x; ?p ?o.
-	      filter (?p != <http://purl.org/dc/terms/isVersionOf>)
-	      optional {graph <${TARGET_GRAPH}> {?x ?y ?z.} }
-	    }
+    WHERE {
+      GRAPH <${LANDING_ZONE_GRAPH}> {
+        <${subject}> <http://purl.org/dc/terms/isVersionOf> ?x .
+      }
+      {
+        GRAPH <${LANDING_ZONE_GRAPH}> {
+          ${!DEEP_COPY_BLANK_NODES
+            ? '<${subject}> ?p ?o . FILTER (?p != <http://purl.org/dc/terms/isVersionOf>)'
+            : `{
+                 <${subject}> ?p ?o .
+                 FILTER (?p != <http://purl.org/dc/terms/isVersionOf>)
+               } UNION {
+                 <${subject}> ?p ?o .
+                 FILTER (?p != <http://purl.org/dc/terms/isVersionOf>)
+                 FILTER (STRSTARTS(STR(?o), "${BLANK_NODE_NAMESPACE}")) .
+
+                 {
+                   ?o ?p1 ?o1 .
+                 } UNION {
+                   ?o ?p1 ?o1 .
+                   FILTER (STRSTARTS(STR(?o1), "${BLANK_NODE_NAMESPACE}")) .
+
+                   {
+                     ?o1 ?p2 ?o2 .
+                   } UNION {
+                     ?o1 ?p2 ?o2 .
+                     FILTER (STRSTARTS(STR(?o2), "${BLANK_NODE_NAMESPACE}")) .
+                     ?o2 ?p3 ?o3 .
+                   }
+                 }
+               }`
+          }
+        }
+      } UNION {
+        GRAPH <${TARGET_GRAPH}> {
+          ${!DEEP_COPY_BLANK_NODES
+            ? '?x ?y ?z'
+            : `{
+                 ?x ?y ?z .
+               } UNION {
+                 ?x ?y ?z .
+                 FILTER (STRSTARTS(STR(?z), "${BLANK_NODE_NAMESPACE}")) .
+
+                 {
+                   ?z ?y1 ?z1 .
+                 } UNION {
+                   ?z ?y1 ?z1 .
+                   FILTER (STRSTARTS(STR(?z1), "${BLANK_NODE_NAMESPACE}")) .
+
+                   {
+                     ?z1 ?y2 ?z2 .
+                   } UNION {
+                     ?z1 ?y2 ?z2 .
+                     FILTER (STRSTARTS(STR(?z2), "${BLANK_NODE_NAMESPACE}")) .
+                     ?z2 ?y3 ?z3 .
+                   }
+                 }
+               }`
+          }
+        }
+      }
     }
 `;
   await updateSudo(query);
