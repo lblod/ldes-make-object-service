@@ -1,6 +1,6 @@
 {
   "name": "ldes-make-object-service",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Make an object from ldes result",
   "author": "redpencil.io",
   "license": "MIT",
