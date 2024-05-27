@@ -3,6 +3,7 @@ import { updateSudo } from "@lblod/mu-auth-sudo";
 import { Delta } from "./lib/delta";
 import bodyParser from "body-parser";
 
+const LDES_VERSION_OF_PATH = process.env.LDES_VERSION_OF_PATH || "http://purl.org/dc/terms/isVersionOf>";
 const LANDING_ZONE_GRAPH =
   process.env.LANDING_ZONE_GRAPH || "http://mu.semte.ch/graphs/ldes";
 const TARGET_GRAPH =
@@ -26,7 +27,7 @@ app.get("/", function (_, res) {
 app.post("/delta", async function (req, res, next) {
   try {
     const entries = new Delta(req.body).getInsertsFor(
-      "http://purl.org/dc/terms/isVersionOf",
+      LDES_VERSION_OF_PATH,
     );
     if (!entries.length) {
       console.debug("Delta dit not contain any interesting subjects.");
@@ -63,18 +64,18 @@ async function makeObject(subject) {
     }
     WHERE {
       GRAPH <${LANDING_ZONE_GRAPH}> {
-        <${subject}> <http://purl.org/dc/terms/isVersionOf> ?x .
+        <${subject}> <${LDES_VERSION_OF_PATH}> ?x .
       }
       {
         GRAPH <${LANDING_ZONE_GRAPH}> {
           ${!DEEP_COPY_BLANK_NODES
-            ? '<${subject}> ?p ?o . FILTER (?p != <http://purl.org/dc/terms/isVersionOf>)'
+            ? `<${subject}> ?p ?o . FILTER (?p != <${LDES_VERSION_OF_PATH}>)`
             : `{
                  <${subject}> ?p ?o .
-                 FILTER (?p != <http://purl.org/dc/terms/isVersionOf>)
+                 FILTER (?p != <${LDES_VERSION_OF_PATH}>)
                } UNION {
                  <${subject}> ?p ?o .
-                 FILTER (?p != <http://purl.org/dc/terms/isVersionOf>)
+                 FILTER (?p != <${LDES_VERSION_OF_PATH}>)
                  FILTER (STRSTARTS(STR(?o), "${BLANK_NODE_NAMESPACE}")) .
 
                  {
