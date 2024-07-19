@@ -3,7 +3,7 @@ import { updateSudo } from "@lblod/mu-auth-sudo";
 import { Delta } from "./lib/delta";
 import bodyParser from "body-parser";
 
-const LDES_VERSION_OF_PATH = process.env.LDES_VERSION_OF_PATH || "http://purl.org/dc/terms/isVersionOf>";
+const LDES_VERSION_OF_PATH = process.env.LDES_VERSION_OF_PATH || "http://purl.org/dc/terms/isVersionOf";
 const LANDING_ZONE_GRAPH =
   process.env.LANDING_ZONE_GRAPH || "http://mu.semte.ch/graphs/ldes";
 const TARGET_GRAPH =
