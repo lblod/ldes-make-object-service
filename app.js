@@ -14,6 +14,7 @@ const BLANK_NODE_NAMESPACE =
 
 app.use(
   bodyParser.json({
+    limit: '50mb',
     type: function (req) {
       return /^application\/json/.test(req.get("content-type"));
     },
